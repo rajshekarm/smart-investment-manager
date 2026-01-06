@@ -3,32 +3,48 @@ version: "3.9"
 services:
 
   ai-service:
-    build: ./ai-service
+    image: <ACCOUNT_ID>.dkr.ecr.us-east-2.amazonaws.com/ai-service:latest
     ports:
       - "8001:8000"
-    secrets:
-      - openai_api_key
+    environment:
+      AWS_REGION: us-east-2
+      SECRET_ID: /investment/prod/ai
     restart: unless-stopped
+    networks:
+      - backend-net
 
   oms-service:
-    build: ./oms-service
+    image: <ACCOUNT_ID>.dkr.ecr.us-east-2.amazonaws.com/oms-service:latest
     ports:
       - "8002:8000"
-    secrets:
-      - jwt_secret
+    environment:
+      AWS_REGION: us-east-2
+      SECRET_ID: /investment/prod/oms
     restart: unless-stopped
+    networks:
+      - backend-net
 
   portfolio-service:
-    build: ./portfolio-service
+    image: <ACCOUNT_ID>.dkr.ecr.us-east-2.amazonaws.com/portfolio-service:latest
     ports:
       - "8003:8000"
+    environment:
+      AWS_REGION: us-east-2
+      SECRET_ID: /investment/prod/portfolio
     restart: unless-stopped
+    networks:
+      - backend-net
 
   blotter-service:
-    build: ./blotter-service
+    image: <ACCOUNT_ID>.dkr.ecr.us-east-2.amazonaws.com/blotter-service:latest
     ports:
       - "8004:8000"
+    environment:
+      AWS_REGION: us-east-2
+      SECRET_ID: /investment/prod/blotter
     restart: unless-stopped
+    networks:
+      - backend-net
 
   postgres:
     image: postgres:15
@@ -39,24 +55,15 @@ services:
     environment:
       POSTGRES_DB: investment
       POSTGRES_USER: investment_user
-      POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password
-    secrets:
-      - postgres_password
+      POSTGRES_PASSWORD: strong-demo-password
     networks:
       - backend-net
     ports:
-      - "5432:5432"  # remove in production if private
+      - "5432:5432"  # OK for demo, remove in prod
 
 networks:
   backend-net:
-    driver : bridge
+    driver: bridge
+
 volumes:
   postgres_data:
-
-secrets:
-  openai_api_key:
-    file: /opt/secrets/openai_api_key
-  jwt_secret:
-    file: /opt/secrets/jwt_secret
-  postgres_password:
-    file: /opt/secrets/postgres_password
