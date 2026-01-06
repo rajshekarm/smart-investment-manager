@@ -1,0 +1,62 @@
+version: "3.9"
+
+services:
+
+  ai-service:
+    build: ./ai-service
+    ports:
+      - "8001:8000"
+    secrets:
+      - openai_api_key
+    restart: unless-stopped
+
+  oms-service:
+    build: ./oms-service
+    ports:
+      - "8002:8000"
+    secrets:
+      - jwt_secret
+    restart: unless-stopped
+
+  portfolio-service:
+    build: ./portfolio-service
+    ports:
+      - "8003:8000"
+    restart: unless-stopped
+
+  blotter-service:
+    build: ./blotter-service
+    ports:
+      - "8004:8000"
+    restart: unless-stopped
+
+  postgres:
+    image: postgres:15
+    container_name: postgres
+    restart: unless-stopped
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_DB: investment
+      POSTGRES_USER: investment_user
+      POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password
+    secrets:
+      - postgres_password
+    networks:
+      - backend-net
+    ports:
+      - "5432:5432"  # remove in production if private
+
+networks:
+  backend-net:
+    driver : bridge
+volumes:
+  postgres_data:
+
+secrets:
+  openai_api_key:
+    file: /opt/secrets/openai_api_key
+  jwt_secret:
+    file: /opt/secrets/jwt_secret
+  postgres_password:
+    file: /opt/secrets/postgres_password
