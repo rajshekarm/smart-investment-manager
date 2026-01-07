@@ -3,13 +3,27 @@
 import subprocess
 import sys
 from datetime import datetime
+from pathlib import Path
 
 APP_DIR = "/opt/backend"
+COMPOSE_FILE = f"{APP_DIR}/docker-compose.yml"
+LOG_FILE = f"{APP_DIR}/deploy.log"
+AWS_REGION = "us-east-2"
+ECR_REGISTRY = "589335871756.dkr.ecr.us-east-2.amazonaws.com"
+
 LOG_PREFIX = "[DEPLOY]"
 
 
+def log(msg: str):
+    timestamp = datetime.utcnow().isoformat()
+    line = f"{timestamp} {LOG_PREFIX} {msg}"
+    print(line)
+    with open(LOG_FILE, "a") as f:
+        f.write(line + "\n")
+
+
 def run(cmd: str):
-    print(f"{LOG_PREFIX} $ {cmd}")
+    log(f"$ {cmd}")
     result = subprocess.run(
         cmd,
         shell=True,
@@ -18,41 +32,60 @@ def run(cmd: str):
         text=True
     )
 
-    if result.returncode != 0:
-        print(result.stderr)
-        sys.exit(result.returncode)
-
     if result.stdout:
-        print(result.stdout)
+        log(result.stdout.strip())
+
+    if result.returncode != 0:
+        log(f"ERROR: {result.stderr.strip()}")
+        sys.exit(result.returncode)
 
 
 def main():
-    print(f"{LOG_PREFIX} 🚀 Backend deployment started")
-    print(f"{LOG_PREFIX} ⏰ {datetime.utcnow().isoformat()} UTC")
+    log("🚀 Backend deployment started")
 
-    # 1️⃣ Sanity checks
-    run("docker --version")
-    run("docker-compose --version")
+    # 1️⃣ Preconditions
+    if not Path(COMPOSE_FILE).exists():
+        log(f"ERROR: Missing {COMPOSE_FILE}")
+        sys.exit(1)
 
-    # 2️⃣ Move to app directory
-    run(f"cd {APP_DIR}")
+    run("docker compose version")
 
-    # 3️⃣ Pull latest images from ECR
-    print(f"{LOG_PREFIX} 🔄 Pulling latest images from ECR")
-    run(f"cd {APP_DIR} && docker-compose pull")
+    # 2️⃣ Authenticate to ECR
+    log("🔐 Logging into Amazon ECR")
+    run(
+        f"aws ecr get-login-password --region {AWS_REGION} "
+        f"| docker login --username AWS --password-stdin {ECR_REGISTRY}"
+    )
 
-    # 4️⃣ Restart services safely
-    print(f"{LOG_PREFIX} 🔁 Restarting backend services")
-    run(f"cd {APP_DIR} && docker-compose down")
-    run(f"cd {APP_DIR} && docker-compose up -d")
+    # 3️⃣ Pull latest images
+    log("⬇️ Pulling latest images")
+    run(f"cd {APP_DIR} && docker compose pull")
 
-    # 5️⃣ Show running containers
-    print(f"{LOG_PREFIX} 📦 Running containers")
+    # 4️⃣ Restart services
+    log("🔄 Restarting backend services")
+    run(f"cd {APP_DIR} && docker compose down")
+    run(f"cd {APP_DIR} && docker compose up -d")
+
+    # 5️⃣ Verify containers
+    log("🔍 Verifying running containers")
+    result = subprocess.run(
+        f"cd {APP_DIR} && docker compose ps --status running",
+        shell=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        text=True
+    )
+
+    if "running" not in result.stdout.lower():
+        log("ERROR: No running containers detected")
+        log(result.stdout)
+        sys.exit(1)
+
+    log("📦 Running containers:")
     run("docker ps")
 
-    print(f"{LOG_PREFIX} ✅ Backend deployment completed successfully")
+    log("✅ Backend deployment completed successfully")
 
 
 if __name__ == "__main__":
     main()
-  

@@ -1,48 +1,59 @@
 version: "3.9"
 
 services:
-
   ai-service:
     image: 589335871756.dkr.ecr.us-east-2.amazonaws.com/ai-service:latest
+    container_name: ai-service
     ports:
       - "8001:8000"   # Kong → Private EC2 → AI
     environment:
       AWS_REGION: us-east-2
       SECRET_ID: /investment/prod/ai
     restart: unless-stopped
+    depends_on:
+      - postgres
     networks:
       - backend-net
 
   oms-service:
     image: 589335871756.dkr.ecr.us-east-2.amazonaws.com/oms-service:latest
+    container_name: oms-service
     ports:
       - "8002:8000"
     environment:
       AWS_REGION: us-east-2
       SECRET_ID: /investment/prod/oms
     restart: unless-stopped
+    depends_on:
+      - postgres
     networks:
       - backend-net
 
   portfolio-service:
     image: 589335871756.dkr.ecr.us-east-2.amazonaws.com/portfolio-service:latest
+    container_name: portfolio-service
     ports:
       - "8003:8000"
     environment:
       AWS_REGION: us-east-2
       SECRET_ID: /investment/prod/portfolio
     restart: unless-stopped
+    depends_on:
+      - postgres
     networks:
       - backend-net
 
   blotter-service:
     image: 589335871756.dkr.ecr.us-east-2.amazonaws.com/blotter-service:latest
+    container_name: blotter-service
     ports:
       - "8004:8000"
     environment:
       AWS_REGION: us-east-2
       SECRET_ID: /investment/prod/blotter
     restart: unless-stopped
+    depends_on:
+      - postgres
     networks:
       - backend-net
 
@@ -50,7 +61,7 @@ services:
     image: postgres:15
     container_name: postgres
     ports:
-      - "5432:5432"  # OK for Phase 1 only
+      - "5432:5432"  # ⚠ Phase 1 only — remove later
     environment:
       POSTGRES_DB: investment
       POSTGRES_USER: investment_user
