@@ -8,7 +8,7 @@ services:
       - "8001:8000"   # Kong → Private EC2 → AI
     environment:
       AWS_REGION: us-east-2
-      SECRET_ID: /investment/prod/ai
+      SECRET_ID: /investment/prod/auth
     restart: unless-stopped
     depends_on:
       - postgres
@@ -22,7 +22,7 @@ services:
       - "8002:8000"
     environment:
       AWS_REGION: us-east-2
-      SECRET_ID: /investment/prod/oms
+      SECRET_ID: /investment/prod/auth
     restart: unless-stopped
     depends_on:
       - postgres
@@ -36,7 +36,7 @@ services:
       - "8003:8000"
     environment:
       AWS_REGION: us-east-2
-      SECRET_ID: /investment/prod/portfolio
+      SECRET_ID: /investment/prod/auth
     restart: unless-stopped
     depends_on:
       - postgres
@@ -50,7 +50,7 @@ services:
       - "8004:8000"
     environment:
       AWS_REGION: us-east-2
-      SECRET_ID: /investment/prod/blotter
+      SECRET_ID: /investment/prod/auth
     restart: unless-stopped
     depends_on:
       - postgres
