@@ -14,7 +14,7 @@ def require_env(name: str) -> str:
         raise RuntimeError(f"Missing required env var: {name}")
     return value
 
-JWT_SECRET = require_env("JWT_SECRET")
+JWT_SECRET = ""
 
 # ---------- Models ----------
 class Order(BaseModel):

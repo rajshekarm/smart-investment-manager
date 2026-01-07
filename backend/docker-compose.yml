@@ -22,7 +22,7 @@ services:
       - "8002:8000"
     environment:
       AWS_REGION: us-east-2
-      SECRET_ID: /investment/prod/auth
+      SECRET_ID: /investment/prod/ai
     restart: unless-stopped
     depends_on:
       - postgres
@@ -36,7 +36,7 @@ services:
       - "8003:8000"
     environment:
       AWS_REGION: us-east-2
-      SECRET_ID: /investment/prod/auth
+      SECRET_ID: /investment/prod/ai
     restart: unless-stopped
     depends_on:
       - postgres
@@ -50,7 +50,7 @@ services:
       - "8004:8000"
     environment:
       AWS_REGION: us-east-2
-      SECRET_ID: /investment/prod/auth
+      SECRET_ID: /investment/prod/ai
     restart: unless-stopped
     depends_on:
       - postgres

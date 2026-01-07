@@ -24,7 +24,7 @@ class PositionResponse(BaseModel):
 def health():
     return {
         "service": "portfolio-service",
-        "status": "ok"
+        "status": "okay"
     }
 
 
