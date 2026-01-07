@@ -13,7 +13,7 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     timeout-minutes: 10
-    
+
     permissions:
       id-token: write
       contents: read
@@ -46,8 +46,10 @@ jobs:
             --parameters commands="[
                 \"set -e\",
                 \"sudo mkdir -p ${APP_DIR}\",
-                \"aws s3 cp s3://${S3_BUCKET}/backend/docker-compose.yml ${APP_DIR}/docker-compose.yml\",
-                \"aws s3 cp s3://${S3_BUCKET}/backend/deploy.py ${APP_DIR}/deploy.py\",
+                \"sudo aws s3 cp s3://${S3_BUCKET}/backend/docker-compose.yml ${APP_DIR}/docker-compose.yml\",
+                \"sudo aws s3 cp s3://${S3_BUCKET}/backend/deploy.py ${APP_DIR}/deploy.py\",
                 \"sudo chmod +x ${APP_DIR}/deploy.py\",
                 \"sudo python3 ${APP_DIR}/deploy.py\"
             ]")
+
+           echo \"SSM Command ID: $COMMAND_ID\"
