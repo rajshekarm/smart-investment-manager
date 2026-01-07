@@ -12,12 +12,15 @@ env:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     
     permissions:
       id-token: write
       contents: read
 
     steps:
+      # Checkout repo
+      - uses: actions/checkout@v4
       # Authenticate GitHub → AWS (OIDC)
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
@@ -34,15 +37,17 @@ jobs:
       # 3️ Trigger EC2 deployment via SSM
       - name: Deploy via SSM
         run: |
-          aws ssm send-command \
+          COMMAND_ID=$(aws ssm send-command \
             --instance-ids "${EC2_INSTANCE_ID}" \
             --document-name "AWS-RunShellScript" \
             --comment "Deploy backend services" \
+            --query "Command.CommandId" \
+            --output text \
             --parameters commands="[
-              \"set -e\",
-              \"sudo mkdir -p ${APP_DIR}\",
-              \"aws s3 cp s3://${S3_BUCKET}/backend/docker-compose.yml ${APP_DIR}/docker-compose.yml\",
-              \"aws s3 cp s3://${S3_BUCKET}/backend/deploy.py ${APP_DIR}/deploy.py\",
-              \"sudo chmod +x ${APP_DIR}/deploy.py\",
-              \"sudo python3 ${APP_DIR}/deploy.py\"
-            ]"
+                \"set -e\",
+                \"sudo mkdir -p ${APP_DIR}\",
+                \"aws s3 cp s3://${S3_BUCKET}/backend/docker-compose.yml ${APP_DIR}/docker-compose.yml\",
+                \"aws s3 cp s3://${S3_BUCKET}/backend/deploy.py ${APP_DIR}/deploy.py\",
+                \"sudo chmod +x ${APP_DIR}/deploy.py\",
+                \"sudo python3 ${APP_DIR}/deploy.py\"
+            ]")
