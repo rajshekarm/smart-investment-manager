@@ -15,7 +15,7 @@ def require_env(name: str) -> str:
     return value
 
 
-OPENAI_API_KEY = require_env("openai_api_key")
+OPENAI_API_KEY = require_env("OPENAI_API_KEY")
 
 # ---------- Middleware ----------
 app.add_middleware(
