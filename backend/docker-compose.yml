@@ -8,7 +8,7 @@ services:
       - "8001:8000"   # Kong → Private EC2 → AI
     environment:
       AWS_REGION: us-east-2
-      SECRET_ID: /investment/prod/auth
+      SECRET_ID: /investment/prod/ai
     restart: unless-stopped
     depends_on:
       - postgres

@@ -14,7 +14,6 @@ def require_env(name: str) -> str:
         raise RuntimeError(f"Missing required env var: {name}")
     return value
 
-JWT_SECRET = require_env("JWT_SECRET")
 
 OPENAI_API_KEY = require_env("openai_api_key")
 
