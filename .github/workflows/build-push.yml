@@ -13,6 +13,10 @@ env:
   AWS_REGION: us-east-2
   ECR_REGISTRY: 589335871756.dkr.ecr.us-east-2.amazonaws.com
 
+permissions:
+  id-token: write
+  contents: read
+  
 jobs:
   build:
     runs-on: ubuntu-latest
