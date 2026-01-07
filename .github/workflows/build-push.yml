@@ -4,7 +4,10 @@ on:
   push:
     branches: [ master ]
     paths:
-      - "backend/**"
+      -  "backend/**"
+      -  "cd/**"
+      - ".github/workflows/**"
+      - "frontend/**"
 
 env:
   AWS_REGION: us-east-2
