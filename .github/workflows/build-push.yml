@@ -1,12 +1,26 @@
-name: Build & Push to ECR
+name: Build & Push Backend Images
 
 on:
   push:
     branches: [ main ]
+    paths:
+      - "backend/**"
+
+env:
+  AWS_REGION: us-east-2
+  ECR_REGISTRY: 589335871756.dkr.ecr.us-east-2.amazonaws.com
 
 jobs:
   build:
     runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        service:
+          - ai-service
+          - oms-service
+          - portfolio-service
+          - blotter-service
 
     steps:
       - uses: actions/checkout@v4
@@ -14,27 +28,21 @@ jobs:
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: us-east-2
+          role-to-assume: arn:aws:iam::589335871756:role/GithubActionsRole
+          aws-region: ${{ env.AWS_REGION }}
 
-      - name: Login to ECR
-        run: |
-          aws ecr get-login-password \
-          | docker login \
-            --username AWS \
-            --password-stdin <ACCOUNT_ID>.dkr.ecr.us-east-2.amazonaws.com
+      - name: Login to Amazon ECR
+        uses: aws-actions/amazon-ecr-login@v2
 
-      - name: Build image
+      - name: Build & Push ${{ matrix.service }}
         run: |
-          docker build -t ai-service .
+          docker build \
+            -f backend/${{ matrix.service }}/Dockerfile \
+            -t ${{ matrix.service }} \
+            .
 
-      - name: Tag image
-        run: |
-          docker tag ai-service:latest \
-          <ACCOUNT_ID>.dkr.ecr.us-east-2.amazonaws.com/ai-service:latest
+          docker tag ${{ matrix.service }}:latest \
+            $ECR_REGISTRY/${{ matrix.service }}:latest
 
-      - name: Push image
-        run: |
           docker push \
-          <ACCOUNT_ID>.dkr.ecr.us-east-2.amazonaws.com/ai-service:latest
+            $ECR_REGISTRY/${{ matrix.service }}:latest

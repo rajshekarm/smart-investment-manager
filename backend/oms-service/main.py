@@ -2,15 +2,19 @@ from fastapi import FastAPI
 from pydantic import BaseModel
 from pathlib import Path
 from uuid import uuid4
+import os
 
 app = FastAPI(title="Order Management Service")
 
 # ---------- Secret Handling ----------
-def read_secret(name: str) -> str | None:
-    path = Path(f"/run/secrets/{name}")
-    return path.read_text().strip() if path.exists() else None
 
-JWT_SECRET = read_secret("jwt_secret")
+def require_env(name: str) -> str:
+    value = os.getenv(name)
+    if not value:
+        raise RuntimeError(f"Missing required env var: {name}")
+    return value
+
+JWT_SECRET = require_env("JWT_SECRET")
 
 # ---------- Models ----------
 class Order(BaseModel):

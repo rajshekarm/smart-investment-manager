@@ -3,9 +3,9 @@ version: "3.9"
 services:
 
   ai-service:
-    image: <ACCOUNT_ID>.dkr.ecr.us-east-2.amazonaws.com/ai-service:latest
+    image: 589335871756.dkr.ecr.us-east-2.amazonaws.com/ai-service:latest
     ports:
-      - "8001:8000"
+      - "8001:8000"   # Kong → Private EC2 → AI
     environment:
       AWS_REGION: us-east-2
       SECRET_ID: /investment/prod/ai
@@ -14,7 +14,7 @@ services:
       - backend-net
 
   oms-service:
-    image: <ACCOUNT_ID>.dkr.ecr.us-east-2.amazonaws.com/oms-service:latest
+    image: 589335871756.dkr.ecr.us-east-2.amazonaws.com/oms-service:latest
     ports:
       - "8002:8000"
     environment:
@@ -25,7 +25,7 @@ services:
       - backend-net
 
   portfolio-service:
-    image: <ACCOUNT_ID>.dkr.ecr.us-east-2.amazonaws.com/portfolio-service:latest
+    image: 589335871756.dkr.ecr.us-east-2.amazonaws.com/portfolio-service:latest
     ports:
       - "8003:8000"
     environment:
@@ -36,7 +36,7 @@ services:
       - backend-net
 
   blotter-service:
-    image: <ACCOUNT_ID>.dkr.ecr.us-east-2.amazonaws.com/blotter-service:latest
+    image: 589335871756.dkr.ecr.us-east-2.amazonaws.com/blotter-service:latest
     ports:
       - "8004:8000"
     environment:
@@ -49,17 +49,17 @@ services:
   postgres:
     image: postgres:15
     container_name: postgres
-    restart: unless-stopped
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"  # OK for Phase 1 only
     environment:
       POSTGRES_DB: investment
       POSTGRES_USER: investment_user
       POSTGRES_PASSWORD: strong-demo-password
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
     networks:
       - backend-net
-    ports:
-      - "5432:5432"  # OK for demo, remove in prod
 
 networks:
   backend-net:

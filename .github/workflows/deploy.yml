@@ -1,0 +1,44 @@
+name: Deploy Backend Services
+
+on:
+  workflow_dispatch:
+
+env:
+  AWS_REGION: us-east-2
+  EC2_INSTANCE_ID: i-09bb92ad6114aaef8
+  APP_DIR: /opt/backend
+  S3_BUCKET: rajshekarm-investment-dev-app-configs
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Authenticate GitHub → AWS (OIDC)
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::589335871756:role/GithubActionsRole
+          aws-region: ${{ env.AWS_REGION }}
+
+      # 2️ Upload runtime config to S3
+      - name: Upload backend config to S3
+        run: |
+          aws s3 cp backend/docker-compose.yml s3://${S3_BUCKET}/backend/docker-compose.yml
+          aws s3 cp cd/deploy.py s3://${S3_BUCKET}/backend/deploy.py
+
+      # 3️ Trigger EC2 deployment via SSM
+      - name: Deploy via SSM
+        run: |
+          aws ssm send-command \
+            --instance-ids "${EC2_INSTANCE_ID}" \
+            --document-name "AWS-RunShellScript" \
+            --comment "Deploy backend services" \
+            --parameters commands="[
+              \"set -e\",
+              \"sudo mkdir -p ${APP_DIR}\",
+              \"aws s3 cp s3://${S3_BUCKET}/backend/docker-compose.yml ${APP_DIR}/docker-compose.yml\",
+              \"aws s3 cp s3://${S3_BUCKET}/backend/deploy.py ${APP_DIR}/deploy.py\",
+              \"sudo chmod +x ${APP_DIR}/deploy.py\",
+              \"sudo python3 ${APP_DIR}/deploy.py\"
+            ]"
