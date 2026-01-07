@@ -26,7 +26,7 @@ jobs:
         service:
           - ai-service
           - oms-service
-          - pms-service
+          - portfolio-service
           - blotter-service
 
     steps:
