@@ -43,30 +43,30 @@ def run(cmd: str):
 def main():
     log("🚀 Backend deployment started")
 
-    # 1️⃣ Preconditions
+    # 1️ Preconditions
     if not Path(COMPOSE_FILE).exists():
         log(f"ERROR: Missing {COMPOSE_FILE}")
         sys.exit(1)
 
     run("docker compose version")
 
-    # 2️⃣ Authenticate to ECR
+    # 2️ Authenticate to ECR
     log("🔐 Logging into Amazon ECR")
     run(
         f"aws ecr get-login-password --region {AWS_REGION} "
         f"| docker login --username AWS --password-stdin {ECR_REGISTRY}"
     )
 
-    # 3️⃣ Pull latest images
+    # 3️ Pull latest images
     log("⬇️ Pulling latest images")
     run(f"cd {APP_DIR} && docker compose pull")
 
-    # 4️⃣ Restart services
+    # 4️ Restart services
     log("🔄 Restarting backend services")
     run(f"cd {APP_DIR} && docker compose down")
     run(f"cd {APP_DIR} && docker compose up -d")
 
-    # 5️⃣ Verify containers
+    # 5️ Verify containers
     log("🔍 Verifying running containers")
     result = subprocess.run(
         f"cd {APP_DIR} && docker compose ps --status running",
