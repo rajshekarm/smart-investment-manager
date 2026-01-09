@@ -1,0 +1,15 @@
+
+
+
+
+
+
+
+
+
+# curl -X POST http://3.139.93.157:8000/ai/interpret \
+#   -H "Content-Type: application/json" \
+#   -d '{"message":"buy me 5 shares"}'
+
+
+  curl http://3.139.93.157:8000/oms/health
